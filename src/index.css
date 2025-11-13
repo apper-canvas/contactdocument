@@ -1,0 +1,92 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+@import 'react-toastify/dist/ReactToastify.css';
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    background: #f8fafc;
+    color: #1e293b;
+    line-height: 1.6;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .gradient-bg {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  }
+  
+  .card-shadow {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease-out, transform 0.2s ease-out;
+  }
+  
+  .card-shadow:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+  }
+  
+  .modal-backdrop {
+    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.4);
+  }
+  
+  .btn-scale {
+    transition: transform 0.15s ease-out;
+  }
+  
+  .btn-scale:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Toast Customizations */
+.Toastify__toast-container {
+  z-index: 9999;
+}
+
+.Toastify__toast {
+  font-family: 'Inter', system-ui, sans-serif;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.Toastify__toast--success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.Toastify__toast--error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.Toastify__toast--info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+.Toastify__progress-bar--success {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.Toastify__progress-bar--error {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.Toastify__progress-bar--info {
+  background: rgba(255, 255, 255, 0.3);
+}
