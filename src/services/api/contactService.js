@@ -1,185 +1,450 @@
-import contactsData from "@/services/mockData/contacts.json";
+import { getApperClient } from "@/services/apperClient";
+import { toast } from "react-toastify";
 
 class ContactService {
   constructor() {
-    this.contacts = [...contactsData];
-    this.loadFromStorage();
-  }
-
-  loadFromStorage() {
-    try {
-      const stored = localStorage.getItem("contactHub_contacts");
-      if (stored) {
-        this.contacts = JSON.parse(stored);
-      }
-    } catch (error) {
-      console.error("Error loading contacts from storage:", error);
-    }
-  }
-
-  saveToStorage() {
-    try {
-      localStorage.setItem("contactHub_contacts", JSON.stringify(this.contacts));
-    } catch (error) {
-      console.error("Error saving contacts to storage:", error);
-    }
+    this.tableName = 'contact_c';
   }
 
   async getAll() {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return [...this.contacts].sort((a, b) => {
-      const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
-      const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
-      return nameA.localeCompare(nameB);
-    });
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        throw new Error('ApperClient not available');
+      }
+
+      const params = {
+        fields: [
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "firstName_c"}},
+          {"field": {"Name": "lastName_c"}},
+          {"field": {"Name": "email_c"}},
+          {"field": {"Name": "phone_c"}},
+          {"field": {"Name": "company_c"}},
+          {"field": {"Name": "position_c"}},
+          {"field": {"Name": "category_c"}},
+          {"field": {"Name": "notes_c"}},
+          {"field": {"Name": "isFavorite_c"}},
+          {"field": {"Name": "attachments_c"}},
+          {"field": {"Name": "CreatedOn"}},
+          {"field": {"Name": "ModifiedOn"}}
+        ],
+        orderBy: [{"fieldName": "firstName_c", "sorttype": "ASC"}]
+      };
+
+      const response = await apperClient.fetchRecords(this.tableName, params);
+
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return [];
+      }
+
+      return response.data || [];
+    } catch (error) {
+      console.error("Error fetching contacts:", error?.response?.data?.message || error);
+      return [];
+    }
   }
 
   async getById(id) {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const contact = this.contacts.find(contact => contact.Id === parseInt(id));
-    return contact ? { ...contact } : null;
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        throw new Error('ApperClient not available');
+      }
+
+      const params = {
+        fields: [
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "firstName_c"}},
+          {"field": {"Name": "lastName_c"}},
+          {"field": {"Name": "email_c"}},
+          {"field": {"Name": "phone_c"}},
+          {"field": {"Name": "company_c"}},
+          {"field": {"Name": "position_c"}},
+          {"field": {"Name": "category_c"}},
+          {"field": {"Name": "notes_c"}},
+          {"field": {"Name": "isFavorite_c"}},
+          {"field": {"Name": "attachments_c"}},
+          {"field": {"Name": "CreatedOn"}},
+          {"field": {"Name": "ModifiedOn"}}
+        ]
+      };
+
+      const response = await apperClient.getRecordById(this.tableName, parseInt(id), params);
+
+      if (!response.success) {
+        console.error(response.message);
+        return null;
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching contact ${id}:`, error?.response?.data?.message || error);
+      return null;
+    }
   }
 
   async create(contactData) {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    
-    const maxId = Math.max(...this.contacts.map(c => c.Id), 0);
-const newContact = {
-      ...contactData,
-      Id: maxId + 1,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      attachments: contactData.attachments || []
-    };
-    this.contacts.push(newContact);
-    this.saveToStorage();
-    return { ...newContact };
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        throw new Error('ApperClient not available');
+      }
+
+      // Filter out non-updateable fields and map to database field names
+      const record = {
+        Name: `${contactData.firstName_c || ''} ${contactData.lastName_c || ''}`.trim(),
+        firstName_c: contactData.firstName_c || '',
+        lastName_c: contactData.lastName_c || '',
+        email_c: contactData.email_c || '',
+        phone_c: contactData.phone_c || '',
+        company_c: contactData.company_c || '',
+        position_c: contactData.position_c || '',
+        category_c: contactData.category_c || '',
+        notes_c: contactData.notes_c || '',
+        isFavorite_c: contactData.isFavorite_c || false
+      };
+
+      // Only include non-empty values
+      const filteredRecord = {};
+      Object.keys(record).forEach(key => {
+        if (record[key] !== '' && record[key] !== null && record[key] !== undefined) {
+          filteredRecord[key] = record[key];
+        }
+      });
+
+      const params = {
+        records: [filteredRecord]
+      };
+
+      const response = await apperClient.createRecord(this.tableName, params);
+
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return null;
+      }
+
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+
+        if (failed.length > 0) {
+          console.error(`Failed to create ${failed.length} records:`, failed);
+          failed.forEach(record => {
+            record.errors?.forEach(error => toast.error(`${error.fieldLabel}: ${error}`));
+            if (record.message) toast.error(record.message);
+          });
+        }
+        return successful.length > 0 ? successful[0].data : null;
+      }
+    } catch (error) {
+      console.error("Error creating contact:", error?.response?.data?.message || error);
+      return null;
+    }
   }
 
   async update(id, contactData) {
-    await new Promise(resolve => setTimeout(resolve, 400));
-    
-    const index = this.contacts.findIndex(contact => contact.Id === parseInt(id));
-    if (index === -1) {
-      throw new Error("Contact not found");
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        throw new Error('ApperClient not available');
+      }
+
+      // Filter out non-updateable fields and map to database field names
+      const record = {
+        Id: parseInt(id),
+        Name: `${contactData.firstName_c || ''} ${contactData.lastName_c || ''}`.trim(),
+        firstName_c: contactData.firstName_c,
+        lastName_c: contactData.lastName_c,
+        email_c: contactData.email_c,
+        phone_c: contactData.phone_c,
+        company_c: contactData.company_c,
+        position_c: contactData.position_c,
+        category_c: contactData.category_c,
+        notes_c: contactData.notes_c,
+        isFavorite_c: contactData.isFavorite_c
+      };
+
+      // Only include non-empty values (excluding ID)
+      const filteredRecord = { Id: parseInt(id) };
+      Object.keys(record).forEach(key => {
+        if (key !== 'Id' && record[key] !== '' && record[key] !== null && record[key] !== undefined) {
+          filteredRecord[key] = record[key];
+        }
+      });
+
+      const params = {
+        records: [filteredRecord]
+      };
+
+      const response = await apperClient.updateRecord(this.tableName, params);
+
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return null;
+      }
+
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+
+        if (failed.length > 0) {
+          console.error(`Failed to update ${failed.length} records:`, failed);
+          failed.forEach(record => {
+            record.errors?.forEach(error => toast.error(`${error.fieldLabel}: ${error}`));
+            if (record.message) toast.error(record.message);
+          });
+        }
+        return successful.length > 0 ? successful[0].data : null;
+      }
+    } catch (error) {
+      console.error("Error updating contact:", error?.response?.data?.message || error);
+      return null;
     }
-    
-this.contacts[index] = {
-      ...this.contacts[index],
-      ...contactData,
-      Id: parseInt(id),
-      updatedAt: new Date().toISOString(),
-      attachments: contactData.attachments || this.contacts[index].attachments || []
-    };
-    
-    this.saveToStorage();
-    return { ...this.contacts[index] };
   }
 
   async delete(id) {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const index = this.contacts.findIndex(contact => contact.Id === parseInt(id));
-    if (index === -1) {
-      throw new Error("Contact not found");
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        throw new Error('ApperClient not available');
+      }
+
+      const params = {
+        RecordIds: [parseInt(id)]
+      };
+
+      const response = await apperClient.deleteRecord(this.tableName, params);
+
+      if (!response.success) {
+        console.error(response.message);
+        toast.error(response.message);
+        return false;
+      }
+
+      if (response.results) {
+        const successful = response.results.filter(r => r.success);
+        const failed = response.results.filter(r => !r.success);
+
+        if (failed.length > 0) {
+          console.error(`Failed to delete ${failed.length} records:`, failed);
+          failed.forEach(record => {
+            if (record.message) toast.error(record.message);
+          });
+        }
+        return successful.length === 1;
+      }
+    } catch (error) {
+      console.error("Error deleting contact:", error?.response?.data?.message || error);
+      return false;
     }
-    
-    const deletedContact = { ...this.contacts[index] };
-    this.contacts.splice(index, 1);
-    this.saveToStorage();
-    return deletedContact;
   }
 
   async search(query) {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
-    const searchTerm = query.toLowerCase().trim();
-    if (!searchTerm) {
-      return this.getAll();
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        throw new Error('ApperClient not available');
+      }
+
+      if (!query || !query.trim()) {
+        return this.getAll();
+      }
+
+      const params = {
+        fields: [
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "firstName_c"}},
+          {"field": {"Name": "lastName_c"}},
+          {"field": {"Name": "email_c"}},
+          {"field": {"Name": "phone_c"}},
+          {"field": {"Name": "company_c"}},
+          {"field": {"Name": "position_c"}},
+          {"field": {"Name": "category_c"}},
+          {"field": {"Name": "notes_c"}},
+          {"field": {"Name": "isFavorite_c"}},
+          {"field": {"Name": "attachments_c"}},
+          {"field": {"Name": "CreatedOn"}},
+          {"field": {"Name": "ModifiedOn"}}
+        ],
+        whereGroups: [{
+          "operator": "OR",
+          "subGroups": [
+            {
+              "conditions": [
+                {"fieldName": "firstName_c", "operator": "Contains", "values": [query.trim()]},
+                {"fieldName": "lastName_c", "operator": "Contains", "values": [query.trim()]},
+                {"fieldName": "email_c", "operator": "Contains", "values": [query.trim()]},
+                {"fieldName": "company_c", "operator": "Contains", "values": [query.trim()]},
+                {"fieldName": "phone_c", "operator": "Contains", "values": [query.trim()]}
+              ],
+              "operator": "OR"
+            }
+          ]
+        }],
+        orderBy: [{"fieldName": "firstName_c", "sorttype": "ASC"}]
+      };
+
+      const response = await apperClient.fetchRecords(this.tableName, params);
+
+      if (!response.success) {
+        console.error(response.message);
+        return [];
+      }
+
+      return response.data || [];
+    } catch (error) {
+      console.error("Error searching contacts:", error?.response?.data?.message || error);
+      return [];
     }
-    
-    const filtered = this.contacts.filter(contact => {
-      const fullName = `${contact.firstName} ${contact.lastName}`.toLowerCase();
-      const email = contact.email.toLowerCase();
-      const company = (contact.company || "").toLowerCase();
-      const phone = contact.phone.replace(/\D/g, "");
-      const searchPhone = searchTerm.replace(/\D/g, "");
-      
-      return fullName.includes(searchTerm) ||
-             email.includes(searchTerm) ||
-             company.includes(searchTerm) ||
-             (searchPhone && phone.includes(searchPhone));
-    });
-    
-    return filtered.sort((a, b) => {
-      const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
-      const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
-      return nameA.localeCompare(nameB);
-    });
   }
 
   async getByCategory(category) {
-    await new Promise(resolve => setTimeout(resolve, 250));
-    
-    if (!category || category === "all") {
-      return this.getAll();
+    try {
+      if (!category || category === "all") {
+        return this.getAll();
+      }
+
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        throw new Error('ApperClient not available');
+      }
+
+      const params = {
+        fields: [
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "firstName_c"}},
+          {"field": {"Name": "lastName_c"}},
+          {"field": {"Name": "email_c"}},
+          {"field": {"Name": "phone_c"}},
+          {"field": {"Name": "company_c"}},
+          {"field": {"Name": "position_c"}},
+          {"field": {"Name": "category_c"}},
+          {"field": {"Name": "notes_c"}},
+          {"field": {"Name": "isFavorite_c"}},
+          {"field": {"Name": "attachments_c"}},
+          {"field": {"Name": "CreatedOn"}},
+          {"field": {"Name": "ModifiedOn"}}
+        ],
+        where: [{
+          "FieldName": "category_c",
+          "Operator": "EqualTo",
+          "Values": [category],
+          "Include": true
+        }],
+        orderBy: [{"fieldName": "firstName_c", "sorttype": "ASC"}]
+      };
+
+      const response = await apperClient.fetchRecords(this.tableName, params);
+
+      if (!response.success) {
+        console.error(response.message);
+        return [];
+      }
+
+      return response.data || [];
+    } catch (error) {
+      console.error("Error fetching contacts by category:", error?.response?.data?.message || error);
+      return [];
     }
-    
-    const filtered = this.contacts.filter(contact => 
-      contact.category && contact.category.toLowerCase() === category.toLowerCase()
-    );
-    
-    return filtered.sort((a, b) => {
-      const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
-      const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
-      return nameA.localeCompare(nameB);
-    });
   }
 
   async getFavorites() {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
-    const favorites = this.contacts.filter(contact => contact.isFavorite);
-    return favorites.sort((a, b) => {
-      const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
-      const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
-      return nameA.localeCompare(nameB);
-    });
+    try {
+      const apperClient = getApperClient();
+      if (!apperClient) {
+        throw new Error('ApperClient not available');
+      }
+
+      const params = {
+        fields: [
+          {"field": {"Name": "Name"}},
+          {"field": {"Name": "firstName_c"}},
+          {"field": {"Name": "lastName_c"}},
+          {"field": {"Name": "email_c"}},
+          {"field": {"Name": "phone_c"}},
+          {"field": {"Name": "company_c"}},
+          {"field": {"Name": "position_c"}},
+          {"field": {"Name": "category_c"}},
+          {"field": {"Name": "notes_c"}},
+          {"field": {"Name": "isFavorite_c"}},
+          {"field": {"Name": "attachments_c"}},
+          {"field": {"Name": "CreatedOn"}},
+          {"field": {"Name": "ModifiedOn"}}
+        ],
+        where: [{
+          "FieldName": "isFavorite_c",
+          "Operator": "EqualTo",
+          "Values": [true],
+          "Include": true
+        }],
+        orderBy: [{"fieldName": "firstName_c", "sorttype": "ASC"}]
+      };
+
+      const response = await apperClient.fetchRecords(this.tableName, params);
+
+      if (!response.success) {
+        console.error(response.message);
+        return [];
+      }
+
+      return response.data || [];
+    } catch (error) {
+      console.error("Error fetching favorite contacts:", error?.response?.data?.message || error);
+      return [];
+    }
   }
 
   async toggleFavorite(id) {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
-    const index = this.contacts.findIndex(contact => contact.Id === parseInt(id));
-    if (index === -1) {
-      throw new Error("Contact not found");
+    try {
+      // First get the current contact
+      const contact = await this.getById(id);
+      if (!contact) {
+        throw new Error("Contact not found");
+      }
+
+      // Toggle the favorite status
+      const updatedData = {
+        isFavorite_c: !contact.isFavorite_c
+      };
+
+      return await this.update(id, updatedData);
+    } catch (error) {
+      console.error("Error toggling favorite:", error?.response?.data?.message || error);
+      return null;
     }
-    
-    this.contacts[index].isFavorite = !this.contacts[index].isFavorite;
-    this.contacts[index].updatedAt = new Date().toISOString();
-    
-    this.saveToStorage();
-    return { ...this.contacts[index] };
   }
 
   async getStats() {
-    await new Promise(resolve => setTimeout(resolve, 150));
-    
-    const total = this.contacts.length;
-    const favorites = this.contacts.filter(c => c.isFavorite).length;
-    const byCategory = {};
-    
-    this.contacts.forEach(contact => {
-      const category = contact.category || "Uncategorized";
-      byCategory[category] = (byCategory[category] || 0) + 1;
-    });
-    
-    return {
-      total,
-      favorites,
-      byCategory
-    };
+    try {
+      const contacts = await this.getAll();
+      
+      const total = contacts.length;
+      const favorites = contacts.filter(c => c.isFavorite_c).length;
+      const byCategory = {};
+
+      contacts.forEach(contact => {
+        const category = contact.category_c || "Uncategorized";
+        byCategory[category] = (byCategory[category] || 0) + 1;
+      });
+
+      return {
+        total,
+        favorites,
+        byCategory
+      };
+    } catch (error) {
+      console.error("Error fetching stats:", error?.response?.data?.message || error);
+      return {
+        total: 0,
+        favorites: 0,
+        byCategory: {}
+      };
+    }
   }
 }
 

@@ -47,24 +47,24 @@ const Home = () => {
 
   // Filter and sort contacts
   const filteredContacts = useMemo(() => {
-    let filtered = [...contacts];
+let filtered = [...contacts];
 
     // Filter by favorites if enabled
     if (showFavoritesOnly) {
-      filtered = filtered.filter(contact => contact.isFavorite);
+      filtered = filtered.filter(contact => contact.isFavorite_c);
     }
 
     // Sort contacts
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "name":
-          const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
-          const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+          const nameA = `${a.firstName_c || ''} ${a.lastName_c || ''}`.toLowerCase();
+          const nameB = `${b.firstName_c || ''} ${b.lastName_c || ''}`.toLowerCase();
           return nameA.localeCompare(nameB);
         case "company":
-          return (a.company || "").localeCompare(b.company || "");
+          return (a.company_c || "").localeCompare(b.company_c || "");
         case "recent":
-          return new Date(b.updatedAt) - new Date(a.updatedAt);
+          return new Date(b.ModifiedOn || 0) - new Date(a.ModifiedOn || 0);
         default:
           return 0;
       }

@@ -1,5 +1,9 @@
 import { Outlet } from "react-router-dom";
+import { useAuth } from "@/layouts/Root";
+import { useSelector } from "react-redux";
+import React from "react";
 import ApperIcon from "@/components/ApperIcon";
+import Button from "@/components/atoms/Button";
 
 const Layout = () => {
   return (
@@ -15,10 +19,11 @@ const Layout = () => {
               <h1 className="text-xl font-bold text-secondary-900">Contact Hub</h1>
             </div>
             <div className="text-sm text-secondary-600">
-              Professional Contact Management
+Professional Contact Management
             </div>
+            <LogoutButton />
           </div>
-        </div>
+</div>
       </header>
 
       {/* Main Content */}
@@ -28,5 +33,3 @@ const Layout = () => {
     </div>
   );
 };
-
-export default Layout;

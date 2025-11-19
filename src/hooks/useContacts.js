@@ -1,95 +1,103 @@
-import { useState, useEffect } from "react";
-import contactService from "@/services/api/contactService";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
+import contactService from "@/services/api/contactService";
 
 export const useContacts = () => {
   const [contacts, setContacts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const loadContacts = async () => {
+  const loadContacts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError("");
       const data = await contactService.getAll();
-      setContacts(data);
+      setContacts(data || []);
     } catch (err) {
-      setError("Failed to load contacts. Please try again.");
+      setError(err.message);
       console.error("Error loading contacts:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const createContact = async (contactData) => {
     try {
       const newContact = await contactService.create(contactData);
-      setContacts(prev => [...prev, newContact].sort((a, b) => {
-        const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
-        const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
-        return nameA.localeCompare(nameB);
-      }));
-      toast.success("Contact created successfully!");
-      return newContact;
-    } catch (err) {
-      toast.error("Failed to create contact. Please try again.");
-      throw err;
+      if (newContact) {
+        await loadContacts(); // Reload to get fresh data
+        toast.success("Contact created successfully!");
+        return newContact;
+      } else {
+        throw new Error("Failed to create contact");
+      }
+    } catch (error) {
+      console.error("Error creating contact:", error);
+      toast.error("Failed to create contact");
+      throw error;
     }
   };
 
   const updateContact = async (id, contactData) => {
     try {
       const updatedContact = await contactService.update(id, contactData);
-      setContacts(prev => prev.map(contact => 
-        contact.Id === parseInt(id) ? updatedContact : contact
-      ).sort((a, b) => {
-        const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
-        const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
-        return nameA.localeCompare(nameB);
-      }));
-      toast.success("Contact updated successfully!");
-      return updatedContact;
-    } catch (err) {
-      toast.error("Failed to update contact. Please try again.");
-      throw err;
+      if (updatedContact) {
+        await loadContacts(); // Reload to get fresh data
+        toast.success("Contact updated successfully!");
+        return updatedContact;
+      } else {
+        throw new Error("Failed to update contact");
+      }
+    } catch (error) {
+      console.error("Error updating contact:", error);
+      toast.error("Failed to update contact");
+      throw error;
     }
   };
 
   const deleteContact = async (id) => {
     try {
-      await contactService.delete(id);
-      setContacts(prev => prev.filter(contact => contact.Id !== parseInt(id)));
-      toast.success("Contact deleted successfully!");
-    } catch (err) {
-      toast.error("Failed to delete contact. Please try again.");
-      throw err;
+      const success = await contactService.delete(id);
+      if (success) {
+        await loadContacts(); // Reload to get fresh data
+        toast.success("Contact deleted successfully!");
+        return true;
+      } else {
+        throw new Error("Failed to delete contact");
+      }
+    } catch (error) {
+      console.error("Error deleting contact:", error);
+      toast.error("Failed to delete contact");
+      throw error;
     }
   };
 
-  const toggleFavorite = async (contact) => {
+  const toggleFavorite = async (id) => {
     try {
-      const updatedContact = await contactService.toggleFavorite(contact.Id);
-      setContacts(prev => prev.map(c => 
-        c.Id === contact.Id ? updatedContact : c
-      ));
-      toast.success(
-        updatedContact.isFavorite 
-          ? "Added to favorites!" 
-          : "Removed from favorites!"
-      );
-    } catch (err) {
-      toast.error("Failed to update favorite status.");
+      const updatedContact = await contactService.toggleFavorite(id);
+      if (updatedContact) {
+        await loadContacts(); // Reload to get fresh data
+        const isFav = updatedContact.isFavorite_c;
+        toast.success(isFav ? "Added to favorites!" : "Removed from favorites!");
+        return updatedContact;
+      } else {
+        throw new Error("Failed to toggle favorite");
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      toast.error("Failed to update favorite status");
+      throw error;
     }
   };
 
   const searchContacts = async (query) => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError("");
-      const results = await contactService.search(query);
-      setContacts(results);
+      const data = await contactService.search(query);
+      setContacts(data || []);
     } catch (err) {
-      setError("Failed to search contacts. Please try again.");
+      setError(err.message);
       console.error("Error searching contacts:", err);
     } finally {
       setLoading(false);
@@ -97,13 +105,13 @@ export const useContacts = () => {
   };
 
   const filterByCategory = async (category) => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError("");
-      const results = await contactService.getByCategory(category);
-      setContacts(results);
+      const data = await contactService.getByCategory(category);
+      setContacts(data || []);
     } catch (err) {
-      setError("Failed to filter contacts. Please try again.");
+      setError(err.message);
       console.error("Error filtering contacts:", err);
     } finally {
       setLoading(false);
@@ -112,7 +120,7 @@ export const useContacts = () => {
 
   useEffect(() => {
     loadContacts();
-  }, []);
+  }, [loadContacts]);
 
   return {
     contacts,
@@ -124,6 +132,6 @@ export const useContacts = () => {
     deleteContact,
     toggleFavorite,
     searchContacts,
-    filterByCategory
+    filterByCategory,
   };
 };

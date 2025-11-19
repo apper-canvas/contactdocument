@@ -1,9 +1,11 @@
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ApperFileFieldComponent from "@/components/atoms/FileUploader";
+import { format } from "date-fns";
+import { cn } from "@/utils/cn";
 import ApperIcon from "@/components/ApperIcon";
 import Button from "@/components/atoms/Button";
 import Badge from "@/components/atoms/Badge";
-import { cn } from "@/utils/cn";
-import { format } from "date-fns";
 
 const ContactModal = ({ 
   contact, 
@@ -18,22 +20,21 @@ const ContactModal = ({
   if (!contact) return null;
 
   const handleCall = () => {
-    if (contact.phone) {
-      window.open(`tel:${contact.phone}`, "_self");
+if (contact.phone_c) {
+      window.open(`tel:${contact.phone_c}`, "_self");
       onCall?.(contact);
     }
   };
 
   const handleEmail = () => {
-    if (contact.email) {
-      window.open(`mailto:${contact.email}`, "_blank");
+if (contact.email_c) {
+      window.open(`mailto:${contact.email_c}`, "_blank");
       onEmail?.(contact);
     }
   };
 
-  const initials = `${contact.firstName?.charAt(0) || ""}${contact.lastName?.charAt(0) || ""}`.toUpperCase();
-  const fullName = `${contact.firstName || ""} ${contact.lastName || ""}`.trim();
-
+const initials = `${contact.firstName_c?.charAt(0) || ""}${contact.lastName_c?.charAt(0) || ""}`.toUpperCase();
+  const fullName = `${contact.firstName_c || ""} ${contact.lastName_c || ""}`.trim();
   return (
     <AnimatePresence>
       {isOpen && (
@@ -68,19 +69,19 @@ const ContactModal = ({
                     <h2 className="text-xl font-semibold text-secondary-900">
                       {fullName || "Unnamed Contact"}
                     </h2>
-                    {contact.position && contact.company && (
+{contact.position_c && contact.company_c && (
                       <p className="text-sm text-secondary-600">
-                        {contact.position} at {contact.company}
+                        {contact.position_c} at {contact.company_c}
                       </p>
                     )}
-                    {!contact.position && contact.company && (
+                    {!contact.position_c && contact.company_c && (
                       <p className="text-sm text-secondary-600">
-                        {contact.company}
+                        {contact.company_c}
                       </p>
                     )}
-                    {contact.position && !contact.company && (
+                    {contact.position_c && !contact.company_c && (
                       <p className="text-sm text-secondary-600">
-                        {contact.position}
+                        {contact.position_c}
                       </p>
                     )}
                   </div>
@@ -90,7 +91,7 @@ const ContactModal = ({
                     onClick={() => onToggleFavorite?.(contact)}
                     className={cn(
                       "p-2 rounded-full transition-all duration-150",
-                      contact.isFavorite
+contact.isFavorite_c
                         ? "text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50"
                         : "text-secondary-300 hover:text-yellow-500 hover:bg-yellow-50"
                     )}
@@ -99,8 +100,8 @@ const ContactModal = ({
                       name="Star" 
                       className={cn(
                         "w-5 h-5",
-                        contact.isFavorite && "fill-current"
-                      )} 
+                        contact.isFavorite_c && "fill-current"
+                      )}
                     />
                   </button>
                   <button
@@ -115,10 +116,10 @@ const ContactModal = ({
               {/* Content */}
               <div className="p-6 space-y-6">
                 {/* Category */}
-                {contact.category && (
+{contact.category_c && (
                   <div>
-                    <Badge variant={contact.category.toLowerCase()}>
-                      {contact.category}
+                    <Badge variant={contact.category_c.toLowerCase()}>
+                      {contact.category_c}
                     </Badge>
                   </div>
                 )}
@@ -127,11 +128,11 @@ const ContactModal = ({
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium text-secondary-900">Contact Information</h3>
                   
-                  {contact.phone && (
+{contact.phone_c && (
                     <div className="flex items-center justify-between p-3 bg-secondary-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <ApperIcon name="Phone" className="w-5 h-5 text-secondary-500" />
-                        <span className="text-secondary-700">{contact.phone}</span>
+                        <span className="text-secondary-700">{contact.phone_c}</span>
                       </div>
                       <button
                         onClick={handleCall}
@@ -142,11 +143,11 @@ const ContactModal = ({
                     </div>
                   )}
 
-                  {contact.email && (
+                  {contact.email_c && (
                     <div className="flex items-center justify-between p-3 bg-secondary-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <ApperIcon name="Mail" className="w-5 h-5 text-secondary-500" />
-                        <span className="text-secondary-700">{contact.email}</span>
+                        <span className="text-secondary-700">{contact.email_c}</span>
                       </div>
                       <button
                         onClick={handleEmail}
@@ -157,81 +158,50 @@ const ContactModal = ({
                     </div>
                   )}
 
-                  {contact.company && (
+                  {contact.company_c && (
                     <div className="flex items-center space-x-3 p-3 bg-secondary-50 rounded-lg">
                       <ApperIcon name="Building" className="w-5 h-5 text-secondary-500" />
-                      <span className="text-secondary-700">{contact.company}</span>
+                      <span className="text-secondary-700">{contact.company_c}</span>
                     </div>
                   )}
                 </div>
 
                 {/* Notes */}
-                {contact.notes && (
+{contact.notes_c && (
                   <div className="space-y-2">
                     <h3 className="text-lg font-medium text-secondary-900">Notes</h3>
                     <div className="p-4 bg-secondary-50 rounded-lg">
-                      <p className="text-secondary-700 whitespace-pre-wrap">{contact.notes}</p>
+                      <p className="text-secondary-700 whitespace-pre-wrap">{contact.notes_c}</p>
                     </div>
                   </div>
 )}
 
                 {/* File Attachments */}
-                {contact.attachments && contact.attachments.length > 0 && (
+{contact.attachments_c && contact.attachments_c.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="text-lg font-medium text-secondary-900">File Attachments</h3>
-                    <div className="grid gap-2">
-                      {contact.attachments.map((file) => (
-                        <div
-                          key={file.id}
-                          className="flex items-center justify-between p-3 bg-secondary-50 rounded-lg border hover:bg-secondary-100 transition-colors"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <ApperIcon 
-                              name={file.type.includes('image') ? 'Image' : 
-                                    file.type.includes('pdf') ? 'FileText' : 
-                                    file.type.includes('doc') ? 'FileText' : 'File'} 
-                              size={16} 
-                              className="text-secondary-500" 
-                            />
-                            <div>
-                              <p className="text-sm font-medium text-secondary-900">
-                                {file.name}
-                              </p>
-                              <p className="text-xs text-secondary-500">
-                                {(file.size / 1024 / 1024).toFixed(2)} MB
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                const link = document.createElement('a');
-                                link.href = file.url;
-                                link.download = file.name;
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                              }}
-                              className="text-primary-600 hover:text-primary-700"
-                            >
-                              <ApperIcon name="Download" size={14} />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <ApperFileFieldComponent
+                      elementId={`contact-modal-attachments-${contact.Id}`}
+                      config={{
+                        fieldKey: `attachments_c_${contact.Id}_view`,
+                        fieldName: "attachments_c",
+                        tableName: "contact_c",
+                        apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+                        apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY,
+                        existingFiles: contact.attachments_c || [],
+                        fileCount: (contact.attachments_c || []).length
+                      }}
+                    />
                   </div>
                 )}
 
                 {/* Metadata */}
                 <div className="space-y-2 text-sm text-secondary-500">
-                  {contact.createdAt && (
-                    <p>Created: {format(new Date(contact.createdAt), "PPP")}</p>
+{contact.CreatedOn && (
+                    <p>Created: {format(new Date(contact.CreatedOn), "PPP")}</p>
                   )}
-                  {contact.updatedAt && contact.updatedAt !== contact.createdAt && (
-                    <p>Updated: {format(new Date(contact.updatedAt), "PPP")}</p>
+                  {contact.ModifiedOn && contact.ModifiedOn !== contact.CreatedOn && (
+                    <p>Updated: {format(new Date(contact.ModifiedOn), "PPP")}</p>
                   )}
                 </div>
               </div>
@@ -247,17 +217,17 @@ const ContactModal = ({
                   Delete
                 </Button>
                 <div className="flex space-x-3">
-                  {contact.phone && (
+{contact.phone_c && (
                     <Button
-                      variant="success"
-                      size="sm"
-                      icon="Phone"
                       onClick={handleCall}
+                      size="sm"
+                      className="text-emerald-600 hover:text-emerald-700"
                     >
-                      Call
+                      <ApperIcon name="Phone" size={16} />
                     </Button>
                   )}
-                  {contact.email && (
+
+                  {contact.email_c && (
                     <Button
                       variant="secondary"
                       size="sm"

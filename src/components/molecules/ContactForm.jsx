@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ApperFileFieldComponent from "@/components/atoms/FileUploader";
 import ApperIcon from "@/components/ApperIcon";
 import Select from "@/components/atoms/Select";
 import Button from "@/components/atoms/Button";
@@ -13,39 +14,39 @@ const ContactForm = ({
   loading = false 
 }) => {
 const [formData, setFormData] = useState({
-    firstName: contact?.firstName || "",
-    lastName: contact?.lastName || "",
-    email: contact?.email || "",
-    phone: contact?.phone || "",
-    company: contact?.company || "",
-    position: contact?.position || "",
-    category: contact?.category || "",
-    notes: contact?.notes || "",
-    isFavorite: contact?.isFavorite || false,
-    attachments: contact?.attachments || [],
+    firstName_c: contact?.firstName_c || "",
+    lastName_c: contact?.lastName_c || "",
+    email_c: contact?.email_c || "",
+    phone_c: contact?.phone_c || "",
+    company_c: contact?.company_c || "",
+    position_c: contact?.position_c || "",
+    category_c: contact?.category_c || "",
+    notes_c: contact?.notes_c || "",
+    isFavorite_c: contact?.isFavorite_c || false,
+    attachments_c: contact?.attachments_c || [],
   });
 
   const [errors, setErrors] = useState({});
 
-  const validateForm = () => {
+const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required";
+    if (!formData.firstName_c.trim()) {
+      newErrors.firstName_c = "First name is required";
     }
 
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Last name is required";
+    if (!formData.lastName_c.trim()) {
+      newErrors.lastName_c = "Last name is required";
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+    if (!formData.email_c.trim()) {
+      newErrors.email_c = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email_c)) {
+      newErrors.email_c = "Please enter a valid email address";
     }
 
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required";
+    if (!formData.phone_c.trim()) {
+      newErrors.phone_c = "Phone number is required";
     }
 
     setErrors(newErrors);
@@ -74,57 +75,24 @@ const handleChange = (field, value) => {
     }
   };
 
-  const handleFileUpload = (files) => {
-    const newFiles = Array.from(files).map(file => ({
-      id: Date.now() + Math.random(),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      lastModified: file.lastModified,
-      url: URL.createObjectURL(file)
-    }));
-
-    setFormData(prev => ({
-      ...prev,
-      attachments: [...prev.attachments, ...newFiles]
-    }));
-  };
-
-  const handleFileRemove = (fileId) => {
-    setFormData(prev => ({
-      ...prev,
-      attachments: prev.attachments.filter(file => file.id !== fileId)
-    }));
-  };
-
-  const handleFileDrop = (e) => {
-    e.preventDefault();
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      handleFileUpload(files);
-    }
-  };
-
-  const handleFileDragOver = (e) => {
-    e.preventDefault();
-  };
+// File upload is handled by ApperFileFieldComponent
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Input
           label="First Name"
-          value={formData.firstName}
-          onChange={(e) => handleChange("firstName", e.target.value)}
-          error={errors.firstName}
+value={formData.firstName_c}
+          onChange={(e) => handleChange("firstName_c", e.target.value)}
+          error={errors.firstName_c}
           required
           disabled={loading}
           placeholder="Enter first name"
         />
         <Input
           label="Last Name"
-          value={formData.lastName}
-          onChange={(e) => handleChange("lastName", e.target.value)}
-          error={errors.lastName}
+          value={formData.lastName_c}
+          onChange={(e) => handleChange("lastName_c", e.target.value)}
+          error={errors.lastName_c}
           required
           disabled={loading}
           placeholder="Enter last name"
@@ -135,9 +103,9 @@ const handleChange = (field, value) => {
         <Input
           label="Email"
           type="email"
-          value={formData.email}
-          onChange={(e) => handleChange("email", e.target.value)}
-          error={errors.email}
+          value={formData.email_c}
+          onChange={(e) => handleChange("email_c", e.target.value)}
+          error={errors.email_c}
           required
           disabled={loading}
           placeholder="contact@example.com"
@@ -145,9 +113,9 @@ const handleChange = (field, value) => {
         <Input
           label="Phone"
           type="tel"
-          value={formData.phone}
-          onChange={(e) => handleChange("phone", e.target.value)}
-          error={errors.phone}
+          value={formData.phone_c}
+          onChange={(e) => handleChange("phone_c", e.target.value)}
+          error={errors.phone_c}
           required
           disabled={loading}
           placeholder="+1 (555) 123-4567"
@@ -157,15 +125,15 @@ const handleChange = (field, value) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Input
           label="Company"
-          value={formData.company}
-          onChange={(e) => handleChange("company", e.target.value)}
+          value={formData.company_c}
+          onChange={(e) => handleChange("company_c", e.target.value)}
           disabled={loading}
           placeholder="Company name"
         />
         <Input
           label="Position"
-          value={formData.position}
-          onChange={(e) => handleChange("position", e.target.value)}
+          value={formData.position_c}
+          onChange={(e) => handleChange("position_c", e.target.value)}
           disabled={loading}
           placeholder="Job title"
         />
@@ -173,22 +141,22 @@ const handleChange = (field, value) => {
 
       <Select
         label="Category"
-        value={formData.category}
-        onChange={(e) => handleChange("category", e.target.value)}
+        value={formData.category_c}
+        onChange={(e) => handleChange("category_c", e.target.value)}
         disabled={loading}
       >
         <option value="">Select a category</option>
-        {categories.map((category) => (
-          <option key={category.Id} value={category.name}>
-            {category.name}
-          </option>
-        ))}
+        <option value="Marketing">Marketing</option>
+        <option value="Sales">Sales</option>
+        <option value="Development">Development</option>
+        <option value="Support">Support</option>
+        <option value="Other">Other</option>
       </Select>
 
-      <Textarea
+<Textarea
         label="Notes"
-        value={formData.notes}
-        onChange={(e) => handleChange("notes", e.target.value)}
+        value={formData.notes_c}
+        onChange={(e) => handleChange("notes_c", e.target.value)}
         disabled={loading}
         placeholder="Additional notes about this contact..."
         rows={3}
@@ -196,10 +164,10 @@ const handleChange = (field, value) => {
 
       <div className="flex items-center">
         <input
-          id="favorite"
+id="favorite"
           type="checkbox"
-          checked={formData.isFavorite}
-          onChange={(e) => handleChange("isFavorite", e.target.checked)}
+          checked={formData.isFavorite_c}
+          onChange={(e) => handleChange("isFavorite_c", e.target.checked)}
           disabled={loading}
           className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-secondary-300 rounded"
         />
@@ -212,72 +180,18 @@ const handleChange = (field, value) => {
         <label className="block text-sm font-medium text-secondary-700">
           File Attachments
         </label>
-        
-        {/* File Upload Area */}
-        <div
-          onDrop={handleFileDrop}
-          onDragOver={handleFileDragOver}
-          className="border-2 border-dashed border-secondary-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors"
-        >
-          <ApperIcon name="Upload" size={24} className="mx-auto text-secondary-400 mb-2" />
-          <p className="text-sm text-secondary-600 mb-2">
-            Drag & drop files here, or{" "}
-            <label className="text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
-              browse
-              <input
-                type="file"
-                multiple
-                onChange={(e) => handleFileUpload(e.target.files)}
-                className="hidden"
-                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.zip,.rar"
-              />
-            </label>
-          </p>
-          <p className="text-xs text-secondary-500">
-            PDF, Word docs, images, archives (max 10MB each)
-          </p>
-        </div>
-
-        {/* Attached Files List */}
-        {formData.attachments.length > 0 && (
-          <div className="mt-3 space-y-2">
-            <h4 className="text-sm font-medium text-secondary-700">Attached Files</h4>
-            {formData.attachments.map((file) => (
-              <div
-                key={file.id}
-                className="flex items-center justify-between p-3 bg-secondary-50 rounded-lg border"
-              >
-                <div className="flex items-center space-x-3">
-                  <ApperIcon 
-                    name={file.type.includes('image') ? 'Image' : 
-                          file.type.includes('pdf') ? 'FileText' : 
-                          file.type.includes('doc') ? 'FileText' : 'File'} 
-                    size={16} 
-                    className="text-secondary-500" 
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-secondary-900 truncate max-w-xs">
-                      {file.name}
-                    </p>
-                    <p className="text-xs text-secondary-500">
-                      {(file.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleFileRemove(file.id)}
-                  disabled={loading}
-                  className="text-secondary-500 hover:text-red-600"
-                >
-                  <ApperIcon name="X" size={14} />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
+        <ApperFileFieldComponent
+          elementId={`contact-form-attachments-${contact?.Id || 'new'}`}
+          config={{
+            fieldKey: `attachments_c_${contact?.Id || 'new'}`,
+            fieldName: "attachments_c",
+            tableName: "contact_c",
+            apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+            apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY,
+            existingFiles: formData.attachments_c || [],
+            fileCount: (formData.attachments_c || []).length
+          }}
+        />
       </div>
       <div className="flex justify-end space-x-4 pt-6 border-t border-secondary-200">
         <Button
