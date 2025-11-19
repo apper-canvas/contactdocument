@@ -45,13 +45,13 @@ class ContactService {
     await new Promise(resolve => setTimeout(resolve, 400));
     
     const maxId = Math.max(...this.contacts.map(c => c.Id), 0);
-    const newContact = {
+const newContact = {
       ...contactData,
       Id: maxId + 1,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      attachments: contactData.attachments || []
     };
-    
     this.contacts.push(newContact);
     this.saveToStorage();
     return { ...newContact };
@@ -65,11 +65,12 @@ class ContactService {
       throw new Error("Contact not found");
     }
     
-    this.contacts[index] = {
+this.contacts[index] = {
       ...this.contacts[index],
       ...contactData,
       Id: parseInt(id),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      attachments: contactData.attachments || this.contacts[index].attachments || []
     };
     
     this.saveToStorage();

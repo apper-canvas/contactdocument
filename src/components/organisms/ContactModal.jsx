@@ -173,6 +173,56 @@ const ContactModal = ({
                       <p className="text-secondary-700 whitespace-pre-wrap">{contact.notes}</p>
                     </div>
                   </div>
+)}
+
+                {/* File Attachments */}
+                {contact.attachments && contact.attachments.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium text-secondary-900">File Attachments</h3>
+                    <div className="grid gap-2">
+                      {contact.attachments.map((file) => (
+                        <div
+                          key={file.id}
+                          className="flex items-center justify-between p-3 bg-secondary-50 rounded-lg border hover:bg-secondary-100 transition-colors"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <ApperIcon 
+                              name={file.type.includes('image') ? 'Image' : 
+                                    file.type.includes('pdf') ? 'FileText' : 
+                                    file.type.includes('doc') ? 'FileText' : 'File'} 
+                              size={16} 
+                              className="text-secondary-500" 
+                            />
+                            <div>
+                              <p className="text-sm font-medium text-secondary-900">
+                                {file.name}
+                              </p>
+                              <p className="text-xs text-secondary-500">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = file.url;
+                                link.download = file.name;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }}
+                              className="text-primary-600 hover:text-primary-700"
+                            >
+                              <ApperIcon name="Download" size={14} />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
 
                 {/* Metadata */}

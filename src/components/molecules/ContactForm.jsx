@@ -1,8 +1,9 @@
-import { useState } from "react";
-import Input from "@/components/atoms/Input";
-import Textarea from "@/components/atoms/Textarea";
+import React, { useState } from "react";
+import ApperIcon from "@/components/ApperIcon";
 import Select from "@/components/atoms/Select";
 import Button from "@/components/atoms/Button";
+import Input from "@/components/atoms/Input";
+import Textarea from "@/components/atoms/Textarea";
 
 const ContactForm = ({ 
   contact = null, 
@@ -11,7 +12,7 @@ const ContactForm = ({
   onCancel, 
   loading = false 
 }) => {
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
     firstName: contact?.firstName || "",
     lastName: contact?.lastName || "",
     email: contact?.email || "",
@@ -21,6 +22,7 @@ const ContactForm = ({
     category: contact?.category || "",
     notes: contact?.notes || "",
     isFavorite: contact?.isFavorite || false,
+    attachments: contact?.attachments || [],
   });
 
   const [errors, setErrors] = useState({});
@@ -57,7 +59,7 @@ const ContactForm = ({
     }
   };
 
-  const handleChange = (field, value) => {
+const handleChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -72,6 +74,40 @@ const ContactForm = ({
     }
   };
 
+  const handleFileUpload = (files) => {
+    const newFiles = Array.from(files).map(file => ({
+      id: Date.now() + Math.random(),
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: file.lastModified,
+      url: URL.createObjectURL(file)
+    }));
+
+    setFormData(prev => ({
+      ...prev,
+      attachments: [...prev.attachments, ...newFiles]
+    }));
+  };
+
+  const handleFileRemove = (fileId) => {
+    setFormData(prev => ({
+      ...prev,
+      attachments: prev.attachments.filter(file => file.id !== fileId)
+    }));
+  };
+
+  const handleFileDrop = (e) => {
+    e.preventDefault();
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileUpload(files);
+    }
+  };
+
+  const handleFileDragOver = (e) => {
+    e.preventDefault();
+  };
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -171,7 +207,78 @@ const ContactForm = ({
           Mark as favorite
         </label>
       </div>
+{/* File Attachments */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-secondary-700">
+          File Attachments
+        </label>
+        
+        {/* File Upload Area */}
+        <div
+          onDrop={handleFileDrop}
+          onDragOver={handleFileDragOver}
+          className="border-2 border-dashed border-secondary-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors"
+        >
+          <ApperIcon name="Upload" size={24} className="mx-auto text-secondary-400 mb-2" />
+          <p className="text-sm text-secondary-600 mb-2">
+            Drag & drop files here, or{" "}
+            <label className="text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
+              browse
+              <input
+                type="file"
+                multiple
+                onChange={(e) => handleFileUpload(e.target.files)}
+                className="hidden"
+                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.zip,.rar"
+              />
+            </label>
+          </p>
+          <p className="text-xs text-secondary-500">
+            PDF, Word docs, images, archives (max 10MB each)
+          </p>
+        </div>
 
+        {/* Attached Files List */}
+        {formData.attachments.length > 0 && (
+          <div className="mt-3 space-y-2">
+            <h4 className="text-sm font-medium text-secondary-700">Attached Files</h4>
+            {formData.attachments.map((file) => (
+              <div
+                key={file.id}
+                className="flex items-center justify-between p-3 bg-secondary-50 rounded-lg border"
+              >
+                <div className="flex items-center space-x-3">
+                  <ApperIcon 
+                    name={file.type.includes('image') ? 'Image' : 
+                          file.type.includes('pdf') ? 'FileText' : 
+                          file.type.includes('doc') ? 'FileText' : 'File'} 
+                    size={16} 
+                    className="text-secondary-500" 
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-secondary-900 truncate max-w-xs">
+                      {file.name}
+                    </p>
+                    <p className="text-xs text-secondary-500">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleFileRemove(file.id)}
+                  disabled={loading}
+                  className="text-secondary-500 hover:text-red-600"
+                >
+                  <ApperIcon name="X" size={14} />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="flex justify-end space-x-4 pt-6 border-t border-secondary-200">
         <Button
           type="button"
