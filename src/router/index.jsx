@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { getRouteConfig } from "./route.utils";
 import Root from "@/layouts/Root";
-import Layout from "@/components/organisms/Layout";
+import { Layout } from "@/components/organisms/Layout";
 
 // Lazy load components
 const Home = lazy(() => import("@/components/pages/Home"));
